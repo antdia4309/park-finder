@@ -22,8 +22,3 @@
   font-family: var(--font-body);
   font-weight: 700;
 }
-
-/* Quiet the basemap so park colors stand out. */
-.park-map .leaflet-tile-pane {
-  filter: saturate(0.3) brightness(1.04);
-}

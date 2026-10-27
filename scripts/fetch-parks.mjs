@@ -9,8 +9,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 // Richmond metro area, split into tiles so each request stays light.
 const AREA = { south: 37.43, west: -77.62, north: 37.66, east: -77.33 };
-const ROWS = 2;
-const COLS = 3;
+const ROWS = 4;
+const COLS = 6;
 
 const ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',

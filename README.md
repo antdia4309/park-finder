@@ -4,7 +4,7 @@ ParkFinder helps you find the right park in the Richmond, Virginia area for what
 
 Pick one or more activities and the app ranks parks by how well they fit, shows them on the map, and explains why each one matched. Select a park to see what's there and get directions.
 
-Live site: https://antdia4309.github.io/parkfinder
+Live site: https://antdia4309.github.io/park-finder
 
 This started as ParkingFinder, a parking reservation app built for a class final project, and was rebuilt around finding parks by activity.
 

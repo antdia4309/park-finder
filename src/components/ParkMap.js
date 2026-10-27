@@ -59,8 +59,9 @@ function ParkMap({ parks, selectedId, onSelect, userLocation }) {
     <div className="park-map" role="region" aria-label="Map of matching parks">
       <MapContainer center={RICHMOND} zoom={12} scrollWheelZoom style={{ height: '100%', width: '100%' }}>
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={19}
+          attribution='Tiles &copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {markers}
         {userLocation && (

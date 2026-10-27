@@ -16,7 +16,7 @@
     "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "homepage": "https://antdia4309.github.io/parkfinder",
+  "homepage": "https://antdia4309.github.io/park-finder",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
