@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/park-finder/static/css/main.eb9d3f35.css",
+    "main.js": "/park-finder/static/js/main.0771ae11.js",
+    "static/js/845.5834d961.chunk.js": "/park-finder/static/js/845.5834d961.chunk.js",
+    "index.html": "/park-finder/index.html",
+    "main.eb9d3f35.css.map": "/park-finder/static/css/main.eb9d3f35.css.map",
+    "main.0771ae11.js.map": "/park-finder/static/js/main.0771ae11.js.map",
+    "845.5834d961.chunk.js.map": "/park-finder/static/js/845.5834d961.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.eb9d3f35.css",
+    "static/js/main.0771ae11.js"
+  ]
+}
