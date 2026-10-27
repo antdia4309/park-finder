@@ -1,0 +1,94 @@
+.park-list {
+  padding: 1.25rem 1.5rem;
+}
+
+.park-list h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.park-list ol {
+  list-style: none;
+}
+
+.park-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.7rem 0.25rem;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.park-row:hover .park-name {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.park-row:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: -3px;
+}
+
+.park-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.park-row-main {
+  display: grid;
+  min-width: 0;
+}
+
+.park-name {
+  font-weight: 700;
+}
+
+.park-reasons {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.park-row-meta {
+  display: grid;
+  justify-items: end;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.park-match {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--canopy);
+}
+
+.show-more,
+.park-list.empty button {
+  margin-top: 1rem;
+  padding: 0.55rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--canopy);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.park-list.empty p + p {
+  margin-top: 0.25rem;
+  color: var(--ink-soft);
+}

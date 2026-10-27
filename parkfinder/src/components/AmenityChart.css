@@ -1,0 +1,14 @@
+.amenity-chart {
+  padding: 1.25rem 1.5rem 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.amenity-chart h2 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.amenity-chart-canvas {
+  height: 220px;
+}

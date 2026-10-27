@@ -1,0 +1,44 @@
+.App {
+  display: grid;
+  grid-template-columns: minmax(340px, 420px) 1fr;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.panel {
+  overflow-y: auto;
+  background: var(--leaf);
+  border-right: 1px solid var(--line);
+}
+
+.map-area {
+  position: relative;
+  min-width: 0;
+}
+
+.credit {
+  padding: 1rem 1.5rem 1.5rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 760px) {
+  .App {
+    grid-template-columns: 1fr;
+    grid-template-rows: 45vh auto;
+    height: auto;
+  }
+
+  .map-area {
+    order: -1;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 45vh;
+  }
+
+  .panel {
+    overflow: visible;
+    border-right: 0;
+  }
+}

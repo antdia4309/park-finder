@@ -1,0 +1,119 @@
+.filters {
+  padding: 0 1.5rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.search-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.filters input[type='search'] {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  font: inherit;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.filters input[type='search']:focus-visible {
+  outline: none;
+  border-color: var(--canopy);
+  box-shadow: 0 0 0 3px var(--sun);
+}
+
+.activities {
+  border: 0;
+  margin-top: 1.25rem;
+}
+
+.activities legend {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.activity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 0.5rem;
+}
+
+.activity {
+  display: grid;
+  justify-items: start;
+  gap: 0.15rem;
+  padding: 0.7rem 0.75rem 0.75rem;
+  text-align: left;
+  font: inherit;
+  color: var(--activity);
+  background: #fff;
+  border: 2px solid currentColor;
+  border-radius: 14px 14px 14px 4px;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.activity .activity-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.activity .activity-hint {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.activity.is-on {
+  background: var(--activity);
+  color: #fff;
+}
+
+.activity.is-on .activity-hint {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.activity:focus-visible,
+.locate:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}
+
+.locate {
+  margin-top: 1rem;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--canopy);
+  background: transparent;
+  border: 2px solid var(--canopy);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.locate:hover:not(:disabled) {
+  background: var(--canopy);
+  color: #fff;
+}
+
+.locate:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.filter-error {
+  margin-top: 0.5rem;
+  color: #A3341C;
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .activity {
+    transition: none;
+  }
+}
