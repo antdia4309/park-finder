@@ -27,8 +27,8 @@ function ParkList({ parks, selectedCount, onSelect, onClearFilters }) {
       </h2>
       <ol>
         {parks.slice(0, limit).map((p) => (
-          <li key={p.id}>
-            <button type="button" className="park-row" onClick={() => onSelect(p.id)}>
+          <li key={p.slug}>
+            <button type="button" className="park-row" onClick={() => onSelect(p.slug)}>
               <span className="park-swatch" style={{ background: p.color }} aria-hidden="true" />
               <span className="park-row-main">
                 <span className="park-name">{p.name}</span>

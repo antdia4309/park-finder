@@ -90,6 +90,32 @@
   font-size: 0.92rem;
 }
 
+.details-actions .share {
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--canopy);
+  background: transparent;
+  border: 2px solid var(--canopy);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.details-actions .share:hover {
+  background: var(--canopy);
+  color: #fff;
+}
+
+.share-status {
+  min-height: 1.5em;
+  margin-top: 0.5rem;
+  font-weight: 700;
+  color: var(--canopy);
+}
+
+.details-actions .share:focus-visible,
+.details-actions a:focus-visible,
+
 .details-actions {
   display: flex;
   flex-wrap: wrap;

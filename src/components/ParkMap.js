@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ParkMap.css';
@@ -35,24 +35,24 @@ function MapFocus({ park, userLocation }) {
   return null;
 }
 
-function ParkMap({ parks, selectedId, onSelect, userLocation }) {
-  const selected = parks.find((p) => p.id === selectedId) || null;
+function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
+  const selected = parks.find((p) => p.slug === selectedSlug) || null;
 
   const markers = useMemo(
     () =>
       parks.map((p) => (
         <Marker
-          key={p.id}
+          key={p.slug}
           position={[p.lat, p.lon]}
-          icon={markerIcon(p.color, p.id === selectedId)}
-          zIndexOffset={p.id === selectedId ? 1000 : 0}
+          icon={markerIcon(p.color, p.slug === selectedSlug)}
+          zIndexOffset={p.slug === selectedSlug ? 1000 : 0}
           keyboard={false}
-          eventHandlers={{ click: () => onSelect(p.id) }}
+          eventHandlers={{ click: () => onSelect(p.slug) }}
         >
           <Tooltip direction="top" offset={[0, -8]}>{p.name}</Tooltip>
         </Marker>
       )),
-    [parks, selectedId, onSelect]
+    [parks, selectedSlug, onSelect]
   );
 
   return (
@@ -63,6 +63,14 @@ function ParkMap({ parks, selectedId, onSelect, userLocation }) {
           maxZoom={19}
           attribution='Tiles &copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
+        {selected?.outline && (
+          <Polygon
+            key={`outline-${selected.slug}`}
+            positions={selected.outline}
+            interactive={false}
+            pathOptions={{ color: selected.color, weight: 3, fillColor: selected.color, fillOpacity: 0.12 }}
+          />
+        )}
         {markers}
         {userLocation && (
           <CircleMarker

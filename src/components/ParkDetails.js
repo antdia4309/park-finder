@@ -18,7 +18,28 @@ const AMENITIES = [
 
 function ParkDetails({ park, onBack }) {
   const headingRef = React.useRef(null);
-  React.useEffect(() => headingRef.current?.focus(), [park.id]);
+  const [shareStatus, setShareStatus] = React.useState('');
+  React.useEffect(() => {
+    headingRef.current?.focus();
+    setShareStatus('');
+  }, [park.slug]);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${park.name} | ParkFinder`, url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setShareStatus('Link copied');
+      } else {
+        window.prompt('Copy this link:', url);
+      }
+    } catch (err) {
+      // Closing the share sheet throws AbortError; that's not a failure.
+      if (err.name !== 'AbortError') setShareStatus('Could not copy the link');
+    }
+  };
 
   const good = strengths(park);
   const present = AMENITIES.filter(([key]) => park.features[key] > 0);
@@ -75,9 +96,11 @@ function ParkDetails({ park, onBack }) {
 
       <div className="details-actions">
         <a className="primary" href={directions} target="_blank" rel="noopener noreferrer">Get directions</a>
+        <button type="button" className="share" onClick={handleShare}>Share this park</button>
         {park.website && <a href={park.website} target="_blank" rel="noopener noreferrer">Park website</a>}
         <a href={osm} target="_blank" rel="noopener noreferrer">Fix this park's info</a>
       </div>
+      <p className="share-status" role="status">{shareStatus}</p>
     </section>
   );
 }

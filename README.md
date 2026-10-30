@@ -15,13 +15,17 @@ This started as ParkingFinder, a parking reservation app built for a class final
 - An interactive Leaflet map with markers colored by each park's best activity
 - Sorting by distance from your current location
 - A park details panel with amenities, hours, and directions
+- The selected park's real boundary drawn on the map
+- Shareable links: filters and the selected park live in the URL, like `?do=kids,picnic&park=byrd-park`
 - A chart of which amenities are common across the matching parks
 
 ## Data
 
 Park data comes from [OpenStreetMap](https://www.openstreetmap.org) through the Overpass API. To keep the app fast and reliable, the data is fetched ahead of time and saved to `src/data/parks.json`, so the live site makes no API calls.
 
-To refresh the data for the full Richmond metro area:
+A GitHub Action refreshes the data automatically every Monday night and redeploys the site if anything changed. You can also trigger it by hand from the **Actions** tab with **Run workflow**.
+
+To refresh the data yourself:
 
 ```bash
 npm run fetch-parks
@@ -38,8 +42,11 @@ npm install
 npm start        # runs at http://localhost:3000
 npm test
 npm run build
-npm run deploy   # publishes to GitHub Pages
 ```
+
+## Deploying
+
+Every push to `main` runs the tests and publishes the site to GitHub Pages through GitHub Actions (`.github/workflows/deploy.yml`). There's no manual deploy step. In the repo's **Settings → Pages**, the source must be set to **GitHub Actions**.
 
 ## How matching works
 
