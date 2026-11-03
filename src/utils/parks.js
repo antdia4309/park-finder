@@ -35,6 +35,28 @@ export const ACTIVITIES = [
     reason: (p) => `${p.trailMiles.toFixed(1)} mi of paths`,
   },
   {
+    id: 'water',
+    label: 'Water',
+    hint: 'Splash pads, swimming, boating',
+    color: '#1B8A8A',
+    score: (p) => {
+      const f = p.features;
+      const kinds = [f.splashPad, f.pool, f.fishing, f.boatLaunch].filter(Boolean).length;
+      if (!kinds) return 0;
+      const best = f.splashPad ? 0.8 : f.pool ? 0.7 : 0.6;
+      return Math.min(1, best + 0.1 * (kinds - 1));
+    },
+    reason: (p) => {
+      const f = p.features;
+      const parts = [];
+      if (f.splashPad) parts.push('splash pad');
+      if (f.pool) parts.push('swimming');
+      if (f.fishing) parts.push('fishing');
+      if (f.boatLaunch) parts.push('boat launch');
+      return capitalize(parts.join(', '));
+    },
+  },
+  {
     id: 'picnic',
     label: 'Picnic',
     hint: 'Tables, grills, shelters',

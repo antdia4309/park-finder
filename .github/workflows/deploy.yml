@@ -4,8 +4,8 @@ on:
   # Every push to main: run tests, then publish the site.
   push:
     branches: [main]
-  # Weekly data refresh. Mondays at 3:17 UTC (late Sunday night in Richmond),
-  # when the public OpenStreetMap servers are least busy.
+  # Weekly data refresh from Geofabrik's daily OpenStreetMap download.
+  # Mondays at 3:17 UTC (late Sunday night in Richmond).
   schedule:
     - cron: '17 3 * * 1'
   # Lets you run it by hand from the Actions tab.
@@ -33,12 +33,24 @@ jobs:
 
       - run: npm ci
 
-      - name: Refresh park data
+      - name: Install osmium
         if: github.event_name != 'push'
-        # If OpenStreetMap is down, keep going and publish the existing data.
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
+
+      - name: Refresh park data
+        id: refresh
+        if: github.event_name != 'push'
+        # If the download fails, keep going and publish the existing data.
         continue-on-error: true
-        timeout-minutes: 60
+        timeout-minutes: 20
         run: npm run fetch-parks
+
+      - name: Flag a failed refresh
+        if: steps.refresh.outcome == 'failure'
+        run: |
+          echo "::warning title=Park data not refreshed::The data refresh failed, so the site was published with the existing park data. Open the 'Refresh park data' step for details."
+          echo "### ⚠️ Park data was not refreshed" >> "$GITHUB_STEP_SUMMARY"
+          echo "The site was published with the existing data. Check the **Refresh park data** step for the error." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Save refreshed data
         if: github.event_name != 'push'

@@ -5,6 +5,7 @@ import './ParkDetails.css';
 
 const AMENITIES = [
   ['playground', 'Playgrounds'],
+  ['splashPad', 'Splash pads'],
   ['dogPark', 'Dog parks'],
   ['pitch', 'Fields and courts'],
   ['picnic', 'Picnic spots'],
@@ -13,7 +14,9 @@ const AMENITIES = [
   ['toilets', 'Restrooms'],
   ['water', 'Water fountains'],
   ['fitness', 'Fitness stations'],
-  ['pool', 'Pools'],
+  ['pool', 'Pools and swim spots'],
+  ['fishing', 'Fishing spots'],
+  ['boatLaunch', 'Boat launches'],
 ];
 
 function ParkDetails({ park, onBack }) {

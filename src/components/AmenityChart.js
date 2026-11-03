@@ -9,6 +9,7 @@ const ROWS = [
   ['Playground', (p) => p.features.playground > 0, '#D9622B'],
   ['Dog park', (p) => p.features.dogPark > 0, '#8A5A2B'],
   ['1+ mi of paths', (p) => p.trailMiles >= 1, '#2E6E8E'],
+  ['Water fun', (p) => p.features.splashPad + p.features.pool + p.features.fishing + p.features.boatLaunch > 0, '#1B8A8A'],
   ['Picnic spots', (p) => p.features.picnic + p.features.bbq + p.features.shelter > 0, '#5E8C31'],
   ['Fields or courts', (p) => p.features.pitch > 0, '#71489A'],
   ['Restrooms', (p) => p.features.toilets > 0, '#6B7A6F'],

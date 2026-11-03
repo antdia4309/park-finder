@@ -10,7 +10,8 @@ This started as ParkingFinder, a parking reservation app built for a class final
 
 ## Features
 
-- Activity filters for kids, dogs, walking, picnics, and sports, which can be combined
+- Activity filters for kids, dogs, walking, water, picnics, and sports, which can be combined
+- Nearby parks grouped into numbered clusters when zoomed out
 - A match score for each park based on what's mapped there (playgrounds, dog parks, path mileage, picnic tables, fields, restrooms, water fountains)
 - An interactive Leaflet map with markers colored by each park's best activity
 - Sorting by distance from your current location
@@ -21,19 +22,16 @@ This started as ParkingFinder, a parking reservation app built for a class final
 
 ## Data
 
-Park data comes from [OpenStreetMap](https://www.openstreetmap.org) through the Overpass API. To keep the app fast and reliable, the data is fetched ahead of time and saved to `src/data/parks.json`, so the live site makes no API calls.
+Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `src/data/parks.json`. The live site loads that snapshot, so it never depends on an outside API. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
 
-A GitHub Action refreshes the data automatically every Monday night and redeploys the site if anything changed. You can also trigger it by hand from the **Actions** tab with **Run workflow**.
-
-To refresh the data yourself:
+To refresh the data yourself (in a Codespace or on Linux):
 
 ```bash
+sudo apt-get install -y osmium-tool   # one time
 npm run fetch-parks
 ```
 
-The public Overpass servers are sometimes busy. If the script fails, wait a few minutes and run it again. You can also rebuild from a saved Overpass response with `npm run fetch-parks -- --from raw.json`.
-
-If a park's information looks wrong, the "Fix this park's info" link opens it on OpenStreetMap, where anyone can edit it. Fixes show up in ParkFinder the next time the data is refreshed.
+If a park's information looks wrong, the "Fix this park's info" link opens it on OpenStreetMap, where anyone can edit it. Fixes show up in ParkFinder after the next weekly refresh.
 
 ## Setup
 

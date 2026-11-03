@@ -50,3 +50,9 @@ test('opening a park adds it to the link, and closing it removes it', () => {
   fireEvent.click(screen.getByRole('button', { name: /Back to results/i }));
   expect(window.location.search).toBe('');
 });
+test('the Water activity finds parks with splash pads or swimming', () => {
+  window.history.replaceState(null, '', '/?do=water');
+  render(<App />);
+  expect(screen.getByRole('button', { name: /^Water/i })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('button', { name: /Dorey Park/ })).toBeInTheDocument();
+});

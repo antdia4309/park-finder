@@ -22,3 +22,16 @@
   font-family: var(--font-body);
   font-weight: 700;
 }
+
+.park-cluster {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+  background: var(--canopy);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(35, 79, 53, 0.25), 0 1px 4px rgba(30, 42, 34, 0.4);
+}

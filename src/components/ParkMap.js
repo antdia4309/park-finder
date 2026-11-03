@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ParkMap.css';
@@ -11,6 +12,18 @@ function markerIcon(color, active) {
   return L.divIcon({
     className: '',
     html: `<span class="park-pin${active ? ' is-active' : ''}" style="--pin:${color}"></span>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  });
+}
+
+// Groups nearby parks into a numbered circle when zoomed out.
+function clusterIcon(cluster) {
+  const count = cluster.getChildCount();
+  const size = count < 10 ? 34 : count < 50 ? 42 : 50;
+  return L.divIcon({
+    className: '',
+    html: `<span class="park-cluster" style="width:${size}px;height:${size}px">${count}</span>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
@@ -38,20 +51,22 @@ function MapFocus({ park, userLocation }) {
 function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
   const selected = parks.find((p) => p.slug === selectedSlug) || null;
 
+  // The selected park is drawn outside the clusters so it's never hidden inside one.
   const markers = useMemo(
     () =>
-      parks.map((p) => (
-        <Marker
-          key={p.slug}
-          position={[p.lat, p.lon]}
-          icon={markerIcon(p.color, p.slug === selectedSlug)}
-          zIndexOffset={p.slug === selectedSlug ? 1000 : 0}
-          keyboard={false}
-          eventHandlers={{ click: () => onSelect(p.slug) }}
-        >
-          <Tooltip direction="top" offset={[0, -8]}>{p.name}</Tooltip>
-        </Marker>
-      )),
+      parks
+        .filter((p) => p.slug !== selectedSlug)
+        .map((p) => (
+          <Marker
+            key={p.slug}
+            position={[p.lat, p.lon]}
+            icon={markerIcon(p.color, false)}
+            keyboard={false}
+            eventHandlers={{ click: () => onSelect(p.slug) }}
+          >
+            <Tooltip direction="top" offset={[0, -8]}>{p.name}</Tooltip>
+          </Marker>
+        )),
     [parks, selectedSlug, onSelect]
   );
 
@@ -71,7 +86,25 @@ function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
             pathOptions={{ color: selected.color, weight: 3, fillColor: selected.color, fillOpacity: 0.12 }}
           />
         )}
-        {markers}
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={45}
+          showCoverageOnHover={false}
+          iconCreateFunction={clusterIcon}
+        >
+          {markers}
+        </MarkerClusterGroup>
+        {selected && (
+          <Marker
+            key={`selected-${selected.slug}`}
+            position={[selected.lat, selected.lon]}
+            icon={markerIcon(selected.color, true)}
+            zIndexOffset={1000}
+            keyboard={false}
+          >
+            <Tooltip direction="top" offset={[0, -14]}>{selected.name}</Tooltip>
+          </Marker>
+        )}
         {userLocation && (
           <CircleMarker
             center={[userLocation.lat, userLocation.lon]}
