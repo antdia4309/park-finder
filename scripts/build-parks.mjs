@@ -1,11 +1,11 @@
-// Builds src/data/parks.json from the GeoJSON that scripts/fetch-parks.sh exports.
+// Builds public/data/parks.json from the GeoJSON that scripts/fetch-parks.sh exports.
 // Works out what each park offers using its real outline.
 //
 // Usage: node scripts/build-parks.mjs .osm-cache/richmond.geojsonseq
 
 import { readFile, writeFile } from 'node:fs/promises';
 
-const OUTPUT = new URL('../src/data/parks.json', import.meta.url);
+const OUTPUT = new URL('../public/data/parks.json', import.meta.url);
 const PARK_KINDS = ['park', 'dog_park', 'nature_reserve'];
 const TRAIL_TYPES = ['footway', 'path', 'track', 'cycleway', 'pedestrian', 'bridleway'];
 const PAVED = ['asphalt', 'concrete', 'paved', 'paving_stones', 'concrete:plates', 'sett'];
@@ -385,7 +385,7 @@ async function main() {
     OUTPUT,
     JSON.stringify({ generatedAt: new Date().toISOString(), source: 'OpenStreetMap contributors', parks: output })
   );
-  console.log(`Saved ${output.length} parks to src/data/parks.json`);
+  console.log(`Saved ${output.length} parks to public/data/parks.json`);
 }
 
 main().catch((err) => {

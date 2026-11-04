@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 vi.mock('./components/ParkMap', () => ({ default: () => null }));
 vi.mock('./components/AmenityChart', () => ({ default: () => null }));
 
+// Hand the app the real data file instead of downloading it.
+vi.mock('./utils/data', () => ({ useParkData: vi.fn() }));
+import { useParkData } from './utils/data';
+import parkData from '../public/data/parks.json';
+
 import App from './App';
 
 const searchFor = (text) =>
@@ -11,6 +16,7 @@ const searchFor = (text) =>
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
   window.localStorage.clear();
+  vi.mocked(useParkData).mockReturnValue({ status: 'ready', data: parkData, retry: vi.fn() });
 });
 
 test('renders the ParkFinder header', () => {
@@ -86,4 +92,32 @@ test('the Accessible activity finds parks with paved paths', () => {
   render(<App />);
   expect(screen.getByRole('button', { name: /^Accessible/i })).toHaveAttribute('aria-pressed', 'true');
   expect(screen.getByRole('heading', { name: /parks? matched/i })).toBeInTheDocument();
+});
+
+test('shows a loading message while park data downloads', () => {
+  vi.mocked(useParkData).mockReturnValue({ status: 'loading', data: null, retry: vi.fn() });
+  render(<App />);
+  expect(screen.getByText('Loading parks…')).toBeInTheDocument();
+  // The filters are still usable while waiting.
+  expect(screen.getByRole('button', { name: /^Kids/i })).toBeInTheDocument();
+});
+
+test('offers a retry if park data fails to load', () => {
+  const retry = vi.fn();
+  vi.mocked(useParkData).mockReturnValue({ status: 'error', data: null, retry });
+  render(<App />);
+  expect(screen.getByRole('alert')).toHaveTextContent(/Couldn't load the park list/);
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+  expect(retry).toHaveBeenCalled();
+});
+
+test('a shared park link opens once the data arrives', () => {
+  window.history.replaceState(null, '', '/?park=byrd-park');
+  vi.mocked(useParkData).mockReturnValue({ status: 'loading', data: null, retry: vi.fn() });
+  const { rerender } = render(<App />);
+  expect(screen.getByText('Loading parks…')).toBeInTheDocument();
+  vi.mocked(useParkData).mockReturnValue({ status: 'ready', data: parkData, retry: vi.fn() });
+  rerender(<App />);
+  expect(screen.getByRole('heading', { name: 'Byrd Park' })).toBeInTheDocument();
+  expect(window.location.search).toBe('?park=byrd-park');
 });

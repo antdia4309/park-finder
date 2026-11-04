@@ -26,7 +26,7 @@ This started as ParkingFinder, a parking reservation app built for a class final
 
 ## Data
 
-Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `src/data/parks.json`. It also looks up park photos through each park's Wikidata link. The live site loads that snapshot, so it never depends on an outside API. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
+Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `public/data/parks.json`. It also looks up park photos through each park's Wikidata link. The app downloads that file when it starts, separately from its code, so it never depends on an outside API and a data refresh doesn't change the app's code files. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
 
 To refresh the data yourself (in a Codespace or on Linux):
 

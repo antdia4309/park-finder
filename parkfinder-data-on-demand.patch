@@ -1,0 +1,411 @@
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 47ea74d..b1bce99 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -55,13 +55,13 @@ jobs:
+       - name: Save refreshed data
+         if: github.event_name != 'push'
+         run: |
+-          if git diff --quiet src/data/parks.json; then
++          if git diff --quiet public/data/parks.json; then
+             echo "Park data unchanged."
+             exit 0
+           fi
+           git config user.name "github-actions[bot]"
+           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+-          git add src/data/parks.json
++          git add public/data/parks.json
+           git commit -m "Refresh park data from OpenStreetMap"
+           git push
+ 
+diff --git a/README.md b/README.md
+index 2c7ff63..55bd03c 100644
+--- a/README.md
++++ b/README.md
+@@ -26,7 +26,7 @@ This started as ParkingFinder, a parking reservation app built for a class final
+ 
+ ## Data
+ 
+-Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `src/data/parks.json`. It also looks up park photos through each park's Wikidata link. The live site loads that snapshot, so it never depends on an outside API. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
++Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `public/data/parks.json`. It also looks up park photos through each park's Wikidata link. The app downloads that file when it starts, separately from its code, so it never depends on an outside API and a data refresh doesn't change the app's code files. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
+ 
+ To refresh the data yourself (in a Codespace or on Linux):
+ 
+diff --git a/src/data/parks.json b/public/data/parks.json
+similarity index 100%
+rename from src/data/parks.json
+rename to public/data/parks.json
+diff --git a/scripts/build-parks.mjs b/scripts/build-parks.mjs
+index 032bd77..7a1c7ce 100644
+--- a/scripts/build-parks.mjs
++++ b/scripts/build-parks.mjs
+@@ -1,11 +1,11 @@
+-// Builds src/data/parks.json from the GeoJSON that scripts/fetch-parks.sh exports.
++// Builds public/data/parks.json from the GeoJSON that scripts/fetch-parks.sh exports.
+ // Works out what each park offers using its real outline.
+ //
+ // Usage: node scripts/build-parks.mjs .osm-cache/richmond.geojsonseq
+ 
+ import { readFile, writeFile } from 'node:fs/promises';
+ 
+-const OUTPUT = new URL('../src/data/parks.json', import.meta.url);
++const OUTPUT = new URL('../public/data/parks.json', import.meta.url);
+ const PARK_KINDS = ['park', 'dog_park', 'nature_reserve'];
+ const TRAIL_TYPES = ['footway', 'path', 'track', 'cycleway', 'pedestrian', 'bridleway'];
+ const PAVED = ['asphalt', 'concrete', 'paved', 'paving_stones', 'concrete:plates', 'sett'];
+@@ -385,7 +385,7 @@ async function main() {
+     OUTPUT,
+     JSON.stringify({ generatedAt: new Date().toISOString(), source: 'OpenStreetMap contributors', parks: output })
+   );
+-  console.log(`Saved ${output.length} parks to src/data/parks.json`);
++  console.log(`Saved ${output.length} parks to public/data/parks.json`);
+ }
+ 
+ main().catch((err) => {
+diff --git a/src/App.jsx b/src/App.jsx
+index 232df4b..77f129e 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -1,16 +1,22 @@
+-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
++import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ import './App.css';
+-import parkData from './data/parks.json';
+ import Header from './components/Header';
+ import ActivityFilters from './components/ActivityFilters';
+ import ParkList from './components/ParkList';
+ import ParkDetails from './components/ParkDetails';
+ import ParkMap from './components/ParkMap';
+-import AmenityChart from './components/AmenityChart';
+ import WeatherNudge from './components/WeatherNudge';
++import DataStatus from './components/DataStatus';
+ import { rankParks } from './utils/parks';
+ import { readUrlState, buildSearch } from './utils/url';
+ import { useFavorites } from './utils/favorites';
++import { useParkData } from './utils/data';
++
++// The chart library is large and the chart sits below the list, so load it only when needed.
++const AmenityChart = lazy(() => import('./components/AmenityChart'));
++
++// Stays the same object between renders, so the lists below don't recompute while loading.
++const NO_PARKS = [];
+ 
+ function App() {
+   // Read the URL once, on first render.
+@@ -23,10 +29,12 @@ function App() {
+   const [locationError, setLocationError] = useState('');
+   const [showSaved, setShowSaved] = useState(false);
+   const { favorites, toggleFavorite } = useFavorites();
++  const { status, data, retry } = useParkData();
++  const everyPark = data ? data.parks : NO_PARKS;
+ 
+   const ranked = useMemo(
+-    () => rankParks(parkData.parks, { selected, query, userLocation }),
+-    [selected, query, userLocation]
++    () => rankParks(everyPark, { selected, query, userLocation }),
++    [everyPark, selected, query, userLocation]
+   );
+   const parks = useMemo(
+     () => (showSaved ? ranked.filter((p) => favorites.includes(p.slug)) : ranked),
+@@ -35,8 +43,8 @@ function App() {
+ 
+   // A shared link can point at a park that the current filters hide, so look it up across all parks.
+   const allParks = useMemo(
+-    () => rankParks(parkData.parks, { selected: [], query: '', userLocation }),
+-    [userLocation]
++    () => rankParks(everyPark, { selected: [], query: '', userLocation }),
++    [everyPark, userLocation]
+   );
+   const activePark =
+     parks.find((p) => p.slug === selectedSlug) || allParks.find((p) => p.slug === selectedSlug) || null;
+@@ -119,7 +127,7 @@ function App() {
+   return (
+     <div className="App">
+       <aside className="panel">
+-        <Header parkCount={parkData.parks.length} />
++        <Header parkCount={data ? data.parks.length : null} />
+         {activePark ? (
+           <ParkDetails
+             key={activePark.slug}
+@@ -144,28 +152,38 @@ function App() {
+               onToggleSaved={() => setShowSaved((v) => !v)}
+               savedCount={favorites.length}
+             />
+-            <ParkList
+-              parks={parks}
+-              selectedCount={selected.length}
+-              onSelect={handleSelect}
+-              favorites={favorites}
+-              onToggleFavorite={toggleFavorite}
+-              showSaved={showSaved}
+-              onClearFilters={() => {
+-                setSelected([]);
+-                setQuery('');
+-              }}
+-            />
+-            <AmenityChart parks={parks} />
++            {status === 'ready' ? (
++              <>
++                <ParkList
++                  parks={parks}
++                  selectedCount={selected.length}
++                  onSelect={handleSelect}
++                  favorites={favorites}
++                  onToggleFavorite={toggleFavorite}
++                  showSaved={showSaved}
++                  onClearFilters={() => {
++                    setSelected([]);
++                    setQuery('');
++                  }}
++                />
++                <Suspense fallback={null}>
++                  <AmenityChart parks={parks} />
++                </Suspense>
++              </>
++            ) : (
++              <DataStatus status={status} onRetry={retry} />
++            )}
+           </>
+         )}
+-        <footer className="credit">
+-          Park data from OpenStreetMap contributors, updated{' '}
+-          {new Date(parkData.generatedAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}.
+-        </footer>
++        {data && (
++          <footer className="credit">
++            Park data from OpenStreetMap contributors, updated{' '}
++            {new Date(data.generatedAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}.
++          </footer>
++        )}
+       </aside>
+       <main className="map-area">
+-          <ParkMap
++        <ParkMap
+           parks={mapParks}
+           selectedSlug={activePark ? activePark.slug : null}
+           onSelect={handleSelect}
+diff --git a/src/App.test.jsx b/src/App.test.jsx
+index 0859e7f..4429d7f 100644
+--- a/src/App.test.jsx
++++ b/src/App.test.jsx
+@@ -3,6 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
+ vi.mock('./components/ParkMap', () => ({ default: () => null }));
+ vi.mock('./components/AmenityChart', () => ({ default: () => null }));
+ 
++// Hand the app the real data file instead of downloading it.
++vi.mock('./utils/data', () => ({ useParkData: vi.fn() }));
++import { useParkData } from './utils/data';
++import parkData from '../public/data/parks.json';
++
+ import App from './App';
+ 
+ const searchFor = (text) =>
+@@ -11,6 +16,7 @@ const searchFor = (text) =>
+ beforeEach(() => {
+   window.history.replaceState(null, '', '/');
+   window.localStorage.clear();
++  vi.mocked(useParkData).mockReturnValue({ status: 'ready', data: parkData, retry: vi.fn() });
+ });
+ 
+ test('renders the ParkFinder header', () => {
+@@ -87,3 +93,31 @@ test('the Accessible activity finds parks with paved paths', () => {
+   expect(screen.getByRole('button', { name: /^Accessible/i })).toHaveAttribute('aria-pressed', 'true');
+   expect(screen.getByRole('heading', { name: /parks? matched/i })).toBeInTheDocument();
+ });
++
++test('shows a loading message while park data downloads', () => {
++  vi.mocked(useParkData).mockReturnValue({ status: 'loading', data: null, retry: vi.fn() });
++  render(<App />);
++  expect(screen.getByText('Loading parks…')).toBeInTheDocument();
++  // The filters are still usable while waiting.
++  expect(screen.getByRole('button', { name: /^Kids/i })).toBeInTheDocument();
++});
++
++test('offers a retry if park data fails to load', () => {
++  const retry = vi.fn();
++  vi.mocked(useParkData).mockReturnValue({ status: 'error', data: null, retry });
++  render(<App />);
++  expect(screen.getByRole('alert')).toHaveTextContent(/Couldn't load the park list/);
++  fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
++  expect(retry).toHaveBeenCalled();
++});
++
++test('a shared park link opens once the data arrives', () => {
++  window.history.replaceState(null, '', '/?park=byrd-park');
++  vi.mocked(useParkData).mockReturnValue({ status: 'loading', data: null, retry: vi.fn() });
++  const { rerender } = render(<App />);
++  expect(screen.getByText('Loading parks…')).toBeInTheDocument();
++  vi.mocked(useParkData).mockReturnValue({ status: 'ready', data: parkData, retry: vi.fn() });
++  rerender(<App />);
++  expect(screen.getByRole('heading', { name: 'Byrd Park' })).toBeInTheDocument();
++  expect(window.location.search).toBe('?park=byrd-park');
++});
+diff --git a/src/components/DataStatus.css b/src/components/DataStatus.css
+new file mode 100644
+index 0000000..80f9877
+--- /dev/null
++++ b/src/components/DataStatus.css
+@@ -0,0 +1,53 @@
++.data-status {
++  padding: 1.25rem 1.5rem;
++}
++
++.data-status p {
++  font-weight: 700;
++}
++
++.skeleton {
++  display: grid;
++  gap: 0.75rem;
++  margin-top: 1rem;
++}
++
++.skeleton span {
++  height: 2.6rem;
++  border-radius: 10px;
++  background: linear-gradient(90deg, var(--line) 0%, #fff 50%, var(--line) 100%);
++  background-size: 200% 100%;
++  animation: shimmer 1.4s ease-in-out infinite;
++}
++
++@keyframes shimmer {
++  from { background-position: 100% 0; }
++  to { background-position: -100% 0; }
++}
++
++.data-status.is-error p {
++  color: #A3341C;
++}
++
++.data-status button {
++  margin-top: 0.75rem;
++  padding: 0.55rem 1rem;
++  font: inherit;
++  font-weight: 700;
++  color: #fff;
++  background: var(--canopy);
++  border: 0;
++  border-radius: 999px;
++  cursor: pointer;
++}
++
++.data-status button:focus-visible {
++  outline: 3px solid var(--sun);
++  outline-offset: 2px;
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .skeleton span {
++    animation: none;
++  }
++}
+diff --git a/src/components/DataStatus.jsx b/src/components/DataStatus.jsx
+new file mode 100644
+index 0000000..fbf6b49
+--- /dev/null
++++ b/src/components/DataStatus.jsx
+@@ -0,0 +1,25 @@
++import './DataStatus.css';
++
++// Shown in place of the results while park data downloads, or if it fails.
++function DataStatus({ status, onRetry }) {
++  if (status === 'error') {
++    return (
++      <section className="data-status is-error" role="alert">
++        <p>Couldn't load the park list. Check your connection and try again.</p>
++        <button type="button" onClick={onRetry}>Try again</button>
++      </section>
++    );
++  }
++  return (
++    <section className="data-status" aria-live="polite">
++      <p>Loading parks…</p>
++      <div className="skeleton" aria-hidden="true">
++        <span />
++        <span />
++        <span />
++      </div>
++    </section>
++  );
++}
++
++export default DataStatus;
+diff --git a/src/utils/data.js b/src/utils/data.js
+new file mode 100644
+index 0000000..aae54f5
+--- /dev/null
++++ b/src/utils/data.js
+@@ -0,0 +1,37 @@
++// Downloads the park data when the app starts. It lives in public/data/ rather
++// than inside the app's code, so the page loads faster and a weekly data
++// refresh doesn't change the app's JavaScript files.
++import { useCallback, useEffect, useState } from 'react';
++
++// BASE_URL is "/park-finder/" on GitHub Pages, so this works in dev and production.
++export const DATA_URL = `${import.meta.env.BASE_URL}data/parks.json`;
++
++export async function loadParks() {
++  const res = await fetch(DATA_URL);
++  if (!res.ok) throw new Error(`Park data unavailable (${res.status})`);
++  return res.json();
++}
++
++// { status: 'loading' | 'ready' | 'error', data, retry }
++export function useParkData() {
++  const [state, setState] = useState({ status: 'loading', data: null });
++  const [attempt, setAttempt] = useState(0);
++
++  useEffect(() => {
++    let cancelled = false;
++    loadParks()
++      .then((data) => !cancelled && setState({ status: 'ready', data }))
++      .catch(() => !cancelled && setState({ status: 'error', data: null }));
++    return () => {
++      cancelled = true;
++    };
++  }, [attempt]);
++
++  // Show "loading" again, then try one more time.
++  const retry = useCallback(() => {
++    setState({ status: 'loading', data: null });
++    setAttempt((n) => n + 1);
++  }, []);
++
++  return { ...state, retry };
++}
+diff --git a/src/utils/data.test.js b/src/utils/data.test.js
+new file mode 100644
+index 0000000..80ba90e
+--- /dev/null
++++ b/src/utils/data.test.js
+@@ -0,0 +1,16 @@
++import { loadParks, DATA_URL } from './data';
++
++afterEach(() => vi.unstubAllGlobals());
++
++test('downloads the park data from the site', async () => {
++  const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({ parks: [] }) });
++  vi.stubGlobal('fetch', fetchMock);
++  await expect(loadParks()).resolves.toEqual({ parks: [] });
++  expect(fetchMock).toHaveBeenCalledWith(DATA_URL);
++  expect(DATA_URL).toMatch(/data\/parks\.json$/);
++});
++
++test('reports a failed download', async () => {
++  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 404 }));
++  await expect(loadParks()).rejects.toThrow('Park data unavailable (404)');
++});
+diff --git a/vite.config.js b/vite.config.js
+index 19d9a28..d43b891 100644
+--- a/vite.config.js
++++ b/vite.config.js
+@@ -8,9 +8,6 @@ export default defineConfig({
+   build: {
+     // Keep CRA's folder name so the deploy workflow doesn't need to change.
+     outDir: 'build',
+-    // The bundled park data (src/data/parks.json) makes the main file large.
+-    // Loading that data separately would shrink it; until then, don't warn.
+-    chunkSizeWarningLimit: 1200,
+   },
+   test: {
+     environment: 'jsdom',

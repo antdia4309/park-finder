@@ -1,16 +1,22 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
-import parkData from './data/parks.json';
 import Header from './components/Header';
 import ActivityFilters from './components/ActivityFilters';
 import ParkList from './components/ParkList';
 import ParkDetails from './components/ParkDetails';
 import ParkMap from './components/ParkMap';
-import AmenityChart from './components/AmenityChart';
 import WeatherNudge from './components/WeatherNudge';
+import DataStatus from './components/DataStatus';
 import { rankParks } from './utils/parks';
 import { readUrlState, buildSearch } from './utils/url';
 import { useFavorites } from './utils/favorites';
+import { useParkData } from './utils/data';
+
+// The chart library is large and the chart sits below the list, so load it only when needed.
+const AmenityChart = lazy(() => import('./components/AmenityChart'));
+
+// Stays the same object between renders, so the lists below don't recompute while loading.
+const NO_PARKS = [];
 
 function App() {
   // Read the URL once, on first render.
@@ -23,10 +29,12 @@ function App() {
   const [locationError, setLocationError] = useState('');
   const [showSaved, setShowSaved] = useState(false);
   const { favorites, toggleFavorite } = useFavorites();
+  const { status, data, retry } = useParkData();
+  const everyPark = data ? data.parks : NO_PARKS;
 
   const ranked = useMemo(
-    () => rankParks(parkData.parks, { selected, query, userLocation }),
-    [selected, query, userLocation]
+    () => rankParks(everyPark, { selected, query, userLocation }),
+    [everyPark, selected, query, userLocation]
   );
   const parks = useMemo(
     () => (showSaved ? ranked.filter((p) => favorites.includes(p.slug)) : ranked),
@@ -35,8 +43,8 @@ function App() {
 
   // A shared link can point at a park that the current filters hide, so look it up across all parks.
   const allParks = useMemo(
-    () => rankParks(parkData.parks, { selected: [], query: '', userLocation }),
-    [userLocation]
+    () => rankParks(everyPark, { selected: [], query: '', userLocation }),
+    [everyPark, userLocation]
   );
   const activePark =
     parks.find((p) => p.slug === selectedSlug) || allParks.find((p) => p.slug === selectedSlug) || null;
@@ -119,7 +127,7 @@ function App() {
   return (
     <div className="App">
       <aside className="panel">
-        <Header parkCount={parkData.parks.length} />
+        <Header parkCount={data ? data.parks.length : null} />
         {activePark ? (
           <ParkDetails
             key={activePark.slug}
@@ -144,28 +152,38 @@ function App() {
               onToggleSaved={() => setShowSaved((v) => !v)}
               savedCount={favorites.length}
             />
-            <ParkList
-              parks={parks}
-              selectedCount={selected.length}
-              onSelect={handleSelect}
-              favorites={favorites}
-              onToggleFavorite={toggleFavorite}
-              showSaved={showSaved}
-              onClearFilters={() => {
-                setSelected([]);
-                setQuery('');
-              }}
-            />
-            <AmenityChart parks={parks} />
+            {status === 'ready' ? (
+              <>
+                <ParkList
+                  parks={parks}
+                  selectedCount={selected.length}
+                  onSelect={handleSelect}
+                  favorites={favorites}
+                  onToggleFavorite={toggleFavorite}
+                  showSaved={showSaved}
+                  onClearFilters={() => {
+                    setSelected([]);
+                    setQuery('');
+                  }}
+                />
+                <Suspense fallback={null}>
+                  <AmenityChart parks={parks} />
+                </Suspense>
+              </>
+            ) : (
+              <DataStatus status={status} onRetry={retry} />
+            )}
           </>
         )}
-        <footer className="credit">
-          Park data from OpenStreetMap contributors, updated{' '}
-          {new Date(parkData.generatedAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}.
-        </footer>
+        {data && (
+          <footer className="credit">
+            Park data from OpenStreetMap contributors, updated{' '}
+            {new Date(data.generatedAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}.
+          </footer>
+        )}
       </aside>
       <main className="map-area">
-          <ParkMap
+        <ParkMap
           parks={mapParks}
           selectedSlug={activePark ? activePark.slug : null}
           onSelect={handleSelect}
