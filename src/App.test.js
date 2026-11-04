@@ -5,8 +5,12 @@ jest.mock('./components/AmenityChart', () => () => null);
 
 import App from './App';
 
+const searchFor = (text) =>
+  fireEvent.change(screen.getByLabelText('Search by park name'), { target: { value: text } });
+
 beforeEach(() => {
   window.history.replaceState(null, '', '/');
+  window.localStorage.clear();
 });
 
 test('renders the ParkFinder header', () => {
@@ -45,14 +49,41 @@ test('a shared park link opens that park', () => {
 
 test('opening a park adds it to the link, and closing it removes it', () => {
   render(<App />);
-  fireEvent.click(screen.getByRole('button', { name: /Byrd Park/ }));
-  expect(window.location.search).toBe('?park=byrd-park');
+  searchFor('Byrd');
+  fireEvent.click(screen.getByRole('button', { name: /^Byrd Park/ }));
+  expect(window.location.search).toBe('?q=Byrd&park=byrd-park');
   fireEvent.click(screen.getByRole('button', { name: /Back to results/i }));
-  expect(window.location.search).toBe('');
+  expect(window.location.search).toBe('?q=Byrd');
 });
 test('the Water activity finds parks with splash pads or swimming', () => {
   window.history.replaceState(null, '', '/?do=water');
   render(<App />);
   expect(screen.getByRole('button', { name: /^Water/i })).toHaveAttribute('aria-pressed', 'true');
-  expect(screen.getByRole('button', { name: /Dorey Park/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /^Dorey Park/ })).toBeInTheDocument();
+});
+
+test('saving a park adds it to the Saved parks view', () => {
+  render(<App />);
+  searchFor('Byrd');
+  fireEvent.click(screen.getByRole('button', { name: 'Save Byrd Park' }));
+  fireEvent.click(screen.getByRole('button', { name: /^Saved parks/ }));
+  expect(screen.getByRole('heading', { name: /1 saved park/ })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /^Byrd Park/ })).toBeInTheDocument();
+});
+
+test('saved parks are remembered on the next visit', () => {
+  const { unmount } = render(<App />);
+  searchFor('Byrd');
+  fireEvent.click(screen.getByRole('button', { name: 'Save Byrd Park' }));
+  unmount();
+  render(<App />);
+  searchFor('Byrd');
+  expect(screen.getByRole('button', { name: 'Remove Byrd Park from saved parks' })).toBeInTheDocument();
+});
+
+test('the Accessible activity finds parks with paved paths', () => {
+  window.history.replaceState(null, '', '/?do=access');
+  render(<App />);
+  expect(screen.getByRole('button', { name: /^Accessible/i })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.getByRole('heading', { name: /parks? matched/i })).toBeInTheDocument();
 });

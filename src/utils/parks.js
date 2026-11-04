@@ -57,6 +57,26 @@ export const ACTIVITIES = [
     },
   },
   {
+    id: 'access',
+    label: 'Accessible',
+    hint: 'Paved paths, accessible restrooms',
+    color: '#4F6475',
+    score: (p) => {
+      if (p.wheelchair === 'yes') return 1;
+      if (p.pavedMiles < 0.25 && p.wheelchair !== 'limited') return 0;
+      const base = p.wheelchair === 'limited' ? 0.6 : 0.4;
+      return Math.min(1, base + Math.min(0.4, p.pavedMiles / 3) + (p.features.accessibleToilets ? 0.2 : 0));
+    },
+    reason: (p) => {
+      const parts = [];
+      if (p.wheelchair === 'yes') parts.push('wheelchair accessible');
+      if (p.wheelchair === 'limited') parts.push('partly wheelchair accessible');
+      if (p.pavedMiles >= 0.25) parts.push(`${p.pavedMiles.toFixed(1)} mi paved`);
+      if (p.features.accessibleToilets) parts.push('accessible restroom');
+      return capitalize(parts.join(', '));
+    },
+  },
+  {
     id: 'picnic',
     label: 'Picnic',
     hint: 'Tables, grills, shelters',

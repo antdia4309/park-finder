@@ -1,13 +1,49 @@
 import React from 'react';
 import { strengths, formatMiles } from '../utils/parks';
+import { openStatus } from '../utils/hours';
+import FavoriteButton from './FavoriteButton';
 import './ParkList.css';
 
 const PAGE = 40;
 
-function ParkList({ parks, selectedCount, onSelect, onClearFilters }) {
+function ParkRow({ park, saved, onSelect, onToggleFavorite }) {
+  const status = openStatus(park);
+  return (
+    <li>
+      <button type="button" className="park-row" onClick={() => onSelect(park.slug)}>
+        <span className="park-swatch" style={{ background: park.color }} aria-hidden="true" />
+        <span className="park-row-main">
+          <span className="park-name">{park.name}</span>
+          <span className="park-reasons">
+            {strengths(park).slice(0, 3).map((s) => s.activity.reason(park)).join(', ') || 'Open space'}
+          </span>
+        </span>
+        <span className="park-row-meta">
+          {park.match !== null && <span className="park-match">{Math.round(park.match * 100)}%</span>}
+          {park.distance !== null && <span className="park-distance">{formatMiles(park.distance)}</span>}
+          {status && (
+            <span className={`open-badge ${status.open ? 'is-open' : ''}`}>{status.open ? 'Open' : 'Closed'}</span>
+          )}
+        </span>
+      </button>
+      <FavoriteButton name={park.name} saved={saved} onToggle={() => onToggleFavorite(park.slug)} />
+    </li>
+  );
+}
+
+function ParkList({ parks, selectedCount, onSelect, onClearFilters, favorites, onToggleFavorite, showSaved }) {
   const [limit, setLimit] = React.useState(PAGE);
 
   React.useEffect(() => setLimit(PAGE), [parks]);
+
+  if (!parks.length && showSaved) {
+    return (
+      <section className="park-list empty" aria-live="polite">
+        <p>You haven't saved any parks yet.</p>
+        <p>Tap the heart next to a park to save it here.</p>
+      </section>
+    );
+  }
 
   if (!parks.length) {
     return (
@@ -22,26 +58,19 @@ function ParkList({ parks, selectedCount, onSelect, onClearFilters }) {
   return (
     <section className="park-list" aria-label="Matching parks">
       <h2>
-        {parks.length} {parks.length === 1 ? 'park' : 'parks'}
+        {parks.length} {showSaved ? 'saved ' : ''}
+        {parks.length === 1 ? 'park' : 'parks'}
         {selectedCount ? ' matched' : ''}
       </h2>
       <ol>
         {parks.slice(0, limit).map((p) => (
-          <li key={p.slug}>
-            <button type="button" className="park-row" onClick={() => onSelect(p.slug)}>
-              <span className="park-swatch" style={{ background: p.color }} aria-hidden="true" />
-              <span className="park-row-main">
-                <span className="park-name">{p.name}</span>
-                <span className="park-reasons">
-                  {strengths(p).slice(0, 3).map((s) => s.activity.reason(p)).join(', ') || 'Open space'}
-                </span>
-              </span>
-              <span className="park-row-meta">
-                {p.match !== null && <span className="park-match">{Math.round(p.match * 100)}%</span>}
-                {p.distance !== null && <span className="park-distance">{formatMiles(p.distance)}</span>}
-              </span>
-            </button>
-          </li>
+          <ParkRow
+            key={p.slug}
+            park={p}
+            saved={favorites.includes(p.slug)}
+            onSelect={onSelect}
+            onToggleFavorite={onToggleFavorite}
+          />
         ))}
       </ol>
       {limit < parks.length && (

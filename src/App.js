@@ -7,8 +7,10 @@ import ParkList from './components/ParkList';
 import ParkDetails from './components/ParkDetails';
 import ParkMap from './components/ParkMap';
 import AmenityChart from './components/AmenityChart';
+import WeatherNudge from './components/WeatherNudge';
 import { rankParks } from './utils/parks';
 import { readUrlState, buildSearch } from './utils/url';
+import { useFavorites } from './utils/favorites';
 
 function App() {
   const initial = useRef(readUrlState()).current;
@@ -18,10 +20,16 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [showSaved, setShowSaved] = useState(false);
+  const { favorites, toggleFavorite } = useFavorites();
 
-  const parks = useMemo(
+  const ranked = useMemo(
     () => rankParks(parkData.parks, { selected, query, userLocation }),
     [selected, query, userLocation]
+  );
+  const parks = useMemo(
+    () => (showSaved ? ranked.filter((p) => favorites.includes(p.slug)) : ranked),
+    [ranked, showSaved, favorites]
   );
 
   // A shared link can point at a park that the current filters hide, so look it up across all parks.
@@ -80,6 +88,13 @@ function App() {
   
   const handleBack = () => setSelectedSlug(null);
 
+  // The weather tip's button jumps straight to one activity.
+  const pickActivity = (id) => {
+    setSelectedSlug(null);
+    setShowSaved(false);
+    setSelected([id]);
+  };
+
   const handleLocate = () => {
     if (!navigator.geolocation) {
       setLocationError('Your browser does not support location. Search by name instead.');
@@ -105,9 +120,15 @@ function App() {
       <aside className="panel">
         <Header parkCount={parkData.parks.length} />
         {activePark ? (
-          <ParkDetails park={activePark} onBack={handleBack} />
+          <ParkDetails
+            park={activePark}
+            onBack={handleBack}
+            saved={favorites.includes(activePark.slug)}
+            onToggleFavorite={() => toggleFavorite(activePark.slug)}
+          />
         ) : (
           <>
+            <WeatherNudge onPick={pickActivity} />
             <ActivityFilters
               selected={selected}
               onToggle={toggleActivity}
@@ -117,11 +138,17 @@ function App() {
               locating={locating}
               onLocate={handleLocate}
               locationError={locationError}
+              showSaved={showSaved}
+              onToggleSaved={() => setShowSaved((v) => !v)}
+              savedCount={favorites.length}
             />
             <ParkList
               parks={parks}
               selectedCount={selected.length}
               onSelect={handleSelect}
+              favorites={favorites}
+              onToggleFavorite={toggleFavorite}
+              showSaved={showSaved}
               onClearFilters={() => {
                 setSelected([]);
                 setQuery('');

@@ -12,7 +12,15 @@
   list-style: none;
 }
 
+.park-list li {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
 .park-row {
+  flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: 10px 1fr auto;
   gap: 0.75rem;
@@ -24,7 +32,6 @@
   color: inherit;
   background: none;
   border: 0;
-  border-bottom: 1px solid var(--line);
   cursor: pointer;
 }
 
@@ -91,4 +98,19 @@
 .park-list.empty p + p {
   margin-top: 0.25rem;
   color: var(--ink-soft);
+}
+
+.open-badge {
+  margin-top: 0.15rem;
+  padding: 0 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.open-badge.is-open {
+  color: var(--canopy);
+  border-color: var(--canopy);
 }

@@ -1,0 +1,40 @@
+.weather-nudge {
+  margin: 0 1.5rem 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px 14px 14px 4px;
+  background: #fff;
+  border-left: 5px solid var(--sun);
+}
+
+.weather-nudge.is-rain {
+  border-left-color: #2E6E8E;
+}
+
+.weather-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.weather-actions button {
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--canopy);
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.weather-actions .dismiss {
+  color: var(--ink-soft);
+  background: none;
+  text-decoration: underline;
+}
+
+.weather-actions button:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}

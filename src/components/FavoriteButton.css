@@ -1,0 +1,31 @@
+.favorite {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.favorite:hover {
+  color: #C2412D;
+}
+
+.favorite.is-saved {
+  color: #C2412D;
+}
+
+.favorite.with-label {
+  padding: 0.55rem 1rem;
+  border: 2px solid currentColor;
+}
+
+.favorite:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}

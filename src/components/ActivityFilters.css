@@ -84,8 +84,14 @@
   outline-offset: 2px;
 }
 
-.locate {
+.filter-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
   margin-top: 1rem;
+}
+
+.locate {
   padding: 0.6rem 0.9rem;
   font: inherit;
   font-weight: 700;
@@ -116,4 +122,10 @@
   .activity {
     transition: none;
   }
+}
+
+.saved-toggle.is-on {
+  color: #fff;
+  background: #C2412D;
+  border-color: #C2412D;
 }

@@ -31,6 +31,14 @@ const PATHS = {
       <path d="M3 18c2 0 2-2 4.5-2S10 18 12 18s2.5-2 4.5-2S19 18 21 18" />
     </>
   ),
+  access: (
+    <>
+      <circle cx="12" cy="4.5" r="1.8" />
+      <path d="M12 8v6h5l2 5" />
+      <path d="M12 11h4" />
+      <path d="M8.5 11.5a5 5 0 1 0 6.8 6.3" />
+    </>
+  ),
   picnic: (
     <>
       <path d="M3 10h18" />

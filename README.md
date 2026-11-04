@@ -10,8 +10,12 @@ This started as ParkingFinder, a parking reservation app built for a class final
 
 ## Features
 
-- Activity filters for kids, dogs, walking, water, picnics, and sports, which can be combined
+- Activity filters for kids, dogs, walking, water, accessibility, picnics, and sports, which can be combined
 - Nearby parks grouped into numbered clusters when zoomed out
+- Save favorite parks (stored in your browser, no account needed)
+- "Open now" badges for parks with posted hours
+- Park photos from Wikimedia Commons, with author and license credit
+- A weather tip from Open-Meteo on hot days or after heavy rain
 - A match score for each park based on what's mapped there (playgrounds, dog parks, path mileage, picnic tables, fields, restrooms, water fountains)
 - An interactive Leaflet map with markers colored by each park's best activity
 - Sorting by distance from your current location
@@ -22,7 +26,7 @@ This started as ParkingFinder, a parking reservation app built for a class final
 
 ## Data
 
-Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `src/data/parks.json`. The live site loads that snapshot, so it never depends on an outside API. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
+Park data comes from [OpenStreetMap](https://www.openstreetmap.org). A GitHub Action refreshes it every Monday night: it downloads [Geofabrik's](https://download.geofabrik.de/north-america/us/virginia.html) daily OpenStreetMap file for Virginia, cuts out the Richmond area with [osmium](https://osmcode.org/osmium-tool/), and builds `src/data/parks.json`. It also looks up park photos through each park's Wikidata link. The live site loads that snapshot, so it never depends on an outside API. You can also trigger a refresh from the **Actions** tab with **Run workflow**.
 
 To refresh the data yourself (in a Codespace or on Linux):
 

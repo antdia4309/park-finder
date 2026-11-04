@@ -8,6 +8,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 const OUTPUT = new URL('../src/data/parks.json', import.meta.url);
 const PARK_KINDS = ['park', 'dog_park', 'nature_reserve'];
 const TRAIL_TYPES = ['footway', 'path', 'track', 'cycleway', 'pedestrian', 'bridleway'];
+const PAVED = ['asphalt', 'concrete', 'paved', 'paving_stones', 'concrete:plates', 'sett'];
+const USER_AGENT = 'ParkFinder/1.0 (https://github.com/antdia4309/park-finder)';
 
 // Outline simplification tolerance in degrees (about 5 meters).
 const SIMPLIFY = 0.00005;
@@ -188,9 +190,78 @@ function featureKey(tags) {
   if (tags.leisure === 'picnic_table' || tags.leisure === 'picnic_site' || tags.tourism === 'picnic_site') return 'picnic';
   if (tags.amenity === 'bbq') return 'bbq';
   if (tags.amenity === 'shelter') return 'shelter';
-  if (tags.amenity === 'toilets') return 'toilets';
+  if (tags.amenity === 'toilets') return tags.wheelchair === 'yes' ? 'accessibleToilets' : 'toilets';
   if (tags.amenity === 'drinking_water') return 'water';
   return null;
+}
+
+// ---------- Photos from Wikimedia Commons, through each park's Wikidata link. ----------
+
+async function getJson(url) {
+  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT }, signal: AbortSignal.timeout(30_000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status} from ${new URL(url).host}`);
+  return res.json();
+}
+
+// Commons gives the author as HTML; keep just the text.
+const plainText = (html = '') =>
+  html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'").replace(/\s+/g, ' ').trim();
+
+async function addPhotos(parks, previous) {
+  const withLinks = parks.filter((p) => p.wikidata);
+  try {
+    // 1. Wikidata: which parks have an image (property P18)?
+    const files = new Map();
+    for (let i = 0; i < withLinks.length; i += 50) {
+      const ids = withLinks.slice(i, i + 50).map((p) => p.wikidata).join('|');
+      const data = await getJson(
+        `https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=${encodeURIComponent(ids)}`
+      );
+      for (const [id, entity] of Object.entries(data.entities || {})) {
+        const file = entity.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+        if (file) files.set(id, file);
+      }
+    }
+
+    // 2. Commons: a sized image URL plus the author and license for credit.
+    const info = new Map();
+    const names = [...new Set(files.values())];
+    for (let i = 0; i < names.length; i += 40) {
+      const titles = names.slice(i, i + 40).map((n) => `File:${n}`).join('|');
+      const data = await getJson(
+        `https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&format=json&titles=${encodeURIComponent(titles)}`
+      );
+      const normalized = new Map((data.query?.normalized || []).map((n) => [n.to, n.from]));
+      for (const page of Object.values(data.query?.pages || {})) {
+        const ii = page.imageinfo?.[0];
+        if (!ii) continue;
+        const meta = ii.extmetadata || {};
+        const title = normalized.get(page.title) || page.title;
+        info.set(title.replace(/^File:/, ''), {
+          url: ii.thumburl || ii.url,
+          page: ii.descriptionurl,
+          credit: plainText(meta.Artist?.value) || 'Wikimedia Commons',
+          license: plainText(meta.LicenseShortName?.value) || null,
+        });
+      }
+    }
+
+    let count = 0;
+    for (const park of withLinks) {
+      const file = files.get(park.wikidata);
+      const photo = file && (info.get(file) || info.get(file.replace(/_/g, ' ')));
+      if (photo) {
+        park.photo = photo;
+        count += 1;
+      }
+    }
+    console.log(`Added ${count} park photos from Wikimedia Commons.`);
+  } catch (err) {
+    // Photos are a bonus. If Wikimedia is unreachable, keep the photos we already had.
+    console.warn(`Could not refresh photos (${err.message}). Reusing previous photos.`);
+    const old = new Map((previous?.parks || []).map((p) => [p.id, p.photo]));
+    for (const park of parks) park.photo = old.get(park.id) || null;
+  }
 }
 
 async function main() {
@@ -214,7 +285,7 @@ async function main() {
     if (PARK_KINDS.includes(tags.leisure) && tags.name && isArea) {
       parks.push({ id: osmId(f.id), tags, polygons: toPolygons(f.geometry) });
     } else if (TRAIL_TYPES.includes(tags.highway) && type === 'LineString') {
-      trails.push(toRing(f.geometry.coordinates));
+      trails.push({ points: toRing(f.geometry.coordinates), paved: PAVED.includes(tags.surface) });
     } else {
       // Closed ways come out twice (as a line and as an area); keep only the point or area copy.
       if (type === 'LineString' || type === 'MultiLineString') continue;
@@ -247,10 +318,14 @@ async function main() {
         features: {
           playground: 0, splashPad: 0, dogPark: p.tags.leisure === 'dog_park' ? 1 : 0, pitch: 0,
           picnic: 0, bbq: 0, shelter: 0, fitness: 0, pool: 0, fishing: 0, boatLaunch: 0,
-          toilets: 0, water: 0,
+          toilets: 0, accessibleToilets: 0, water: 0,
         },
         sports: [],
         trailMiles: 0,
+        pavedMiles: 0,
+        wheelchair: p.tags.wheelchair || null,
+        wikidata: p.tags.wikidata || null,
+        photo: null,
         dogsAllowed: p.tags.dog || null,
         website: p.tags.website || p.tags['contact:website'] || null,
         hours: p.tags.opening_hours || null,
@@ -273,13 +348,16 @@ async function main() {
   }
 
   for (const t of trails) {
-    const park = owner(t[Math.floor(t.length / 2)]);
-    if (park) park.trailMiles += pathMiles(t);
+    const park = owner(t.points[Math.floor(t.points.length / 2)]);
+    if (!park) continue;
+    const miles = pathMiles(t.points);
+    park.trailMiles += miles;
+    if (t.paved) park.pavedMiles += miles;
   }
 
   // Unique, readable slugs for shareable links.
   const output = entries
-    .map((e) => ({ ...e.summary, trailMiles: +e.summary.trailMiles.toFixed(2) }))
+    .map((e) => ({ ...e.summary, trailMiles: +e.summary.trailMiles.toFixed(2), pavedMiles: +e.summary.pavedMiles.toFixed(2) }))
     .sort((a, b) => a.name.localeCompare(b.name));
   const used = new Map();
   for (const p of output) {
@@ -289,14 +367,17 @@ async function main() {
   }
 
   // Don't replace good data with a partial download.
+  let previous = null;
   try {
-    const previous = JSON.parse(await readFile(OUTPUT, 'utf8'));
-    if (output.length < previous.parks.length * 0.8) {
-      throw new Error(`Only got ${output.length} parks (had ${previous.parks.length}). Keeping the existing data.`);
-    }
+    previous = JSON.parse(await readFile(OUTPUT, 'utf8'));
   } catch (err) {
     if (err.code !== 'ENOENT') throw err;
   }
+  if (previous && output.length < previous.parks.length * 0.8) {
+    throw new Error(`Only got ${output.length} parks (had ${previous.parks.length}). Keeping the existing data.`);
+  }
+
+  await addPhotos(output, previous);
 
   await writeFile(
     OUTPUT,

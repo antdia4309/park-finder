@@ -6,8 +6,8 @@
 # Run with: npm run fetch-parks
 set -euo pipefail
 
-# Richmond metro area: west,south,east,north
-BBOX="-77.62,37.43,-77.33,37.66"
+# Greater Richmond (city plus Henrico, Chesterfield, and Hanover): west,south,east,north
+BBOX="-77.95,37.15,-77.05,37.95"
 SOURCE="https://download.geofabrik.de/north-america/us/virginia-latest.osm.pbf"
 WORK=".osm-cache"
 

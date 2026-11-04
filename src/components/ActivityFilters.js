@@ -3,7 +3,19 @@ import { ACTIVITIES } from '../utils/parks';
 import ActivityIcon from './ActivityIcon';
 import './ActivityFilters.css';
 
-function ActivityFilters({ selected, onToggle, query, onQueryChange, userLocation, locating, onLocate, locationError }) {
+function ActivityFilters({
+  selected,
+  onToggle,
+  query,
+  onQueryChange,
+  userLocation,
+  locating,
+  onLocate,
+  locationError,
+  showSaved,
+  onToggleSaved,
+  savedCount,
+}) {
   return (
     <section className="filters" aria-label="Search parks">
       <label className="search-label" htmlFor="park-search">Search by park name</label>
@@ -38,9 +50,19 @@ function ActivityFilters({ selected, onToggle, query, onQueryChange, userLocatio
         </div>
       </fieldset>
 
-      <button type="button" className="locate" onClick={onLocate} disabled={locating}>
-        {locating ? 'Finding your location…' : userLocation ? 'Update my location' : 'Sort by distance from me'}
-      </button>
+      <div className="filter-tools">
+        <button type="button" className="locate" onClick={onLocate} disabled={locating}>
+          {locating ? 'Finding your location…' : userLocation ? 'Update my location' : 'Sort by distance from me'}
+        </button>
+        <button
+          type="button"
+          className={`locate saved-toggle ${showSaved ? 'is-on' : ''}`}
+          aria-pressed={showSaved}
+          onClick={onToggleSaved}
+        >
+          Saved parks{savedCount ? ` (${savedCount})` : ''}
+        </button>
+      </div>
       {locationError && <p className="filter-error" role="alert">{locationError}</p>}
     </section>
   );
