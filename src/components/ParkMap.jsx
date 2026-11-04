@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
+import ClusterImport from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './ParkMap.css';
+
+// react-leaflet-cluster only ships the older CommonJS format. Vite 8 hands back the whole
+// module, so the component sits under .default; other tools unwrap it for us.
+const MarkerClusterGroup = ClusterImport.default || ClusterImport;
 
 const RICHMOND = [37.5407, -77.436];
 

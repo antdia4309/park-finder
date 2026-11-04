@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 
-jest.mock('./components/ParkMap', () => () => null);
-jest.mock('./components/AmenityChart', () => () => null);
+vi.mock('./components/ParkMap', () => ({ default: () => null }));
+vi.mock('./components/AmenityChart', () => ({ default: () => null }));
 
 import App from './App';
 

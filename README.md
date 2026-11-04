@@ -39,11 +39,15 @@ If a park's information looks wrong, the "Fix this park's info" link opens it on
 
 ## Setup
 
+Built with [Vite](https://vite.dev) and tested with [Vitest](https://vitest.dev).
+
 ```bash
 npm install
-npm start        # runs at http://localhost:3000
-npm test
-npm run build
+npm start           # dev server at http://localhost:5173/park-finder/
+npm test            # run the tests once
+npm run test:watch  # rerun tests as you edit
+npm run build       # production build in build/
+npm run preview     # serve the production build locally
 ```
 
 ## Deploying

@@ -66,15 +66,10 @@ jobs:
           git push
 
       - name: Run tests
-        run: npm test -- --watchAll=false
-        env:
-          CI: true
+        run: npm test
 
       - name: Build
         run: npm run build
-        env:
-          # Don't fail the deploy over lint warnings.
-          CI: false
 
       - uses: actions/upload-pages-artifact@v5
         with:
