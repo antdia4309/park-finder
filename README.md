@@ -53,3 +53,9 @@ Every push to `main` runs the tests and publishes the site to GitHub Pages throu
 ## How matching works
 
 Each activity has a score from 0 to 1. For example, a park with a playground scores well for kids, and a little higher if it also has restrooms and water. Walking scores rise with path mileage, up to 3 miles. When you pick several activities, a park has to support all of them, and its match is the average of those scores.
+
+## License
+
+The code is released under the [MIT License](LICENSE).
+
+Park data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License. Park photos come from [Wikimedia Commons](https://commons.wikimedia.org), and each one is credited with its author and license in the app. Map tiles © Esri.
