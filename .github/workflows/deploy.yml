@@ -65,6 +65,9 @@ jobs:
           git commit -m "Refresh park data from OpenStreetMap"
           git push
 
+      - name: Check code
+        run: npm run lint
+
       - name: Run tests
         run: npm test
 

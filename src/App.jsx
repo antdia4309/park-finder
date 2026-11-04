@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 import parkData from './data/parks.json';
 import Header from './components/Header';
@@ -13,7 +13,8 @@ import { readUrlState, buildSearch } from './utils/url';
 import { useFavorites } from './utils/favorites';
 
 function App() {
-  const initial = useRef(readUrlState()).current;
+  // Read the URL once, on first render.
+  const [initial] = useState(readUrlState);
   const [selected, setSelected] = useState(initial.selected);
   const [query, setQuery] = useState(initial.query);
   const [selectedSlug, setSelectedSlug] = useState(initial.park);
@@ -121,6 +122,7 @@ function App() {
         <Header parkCount={parkData.parks.length} />
         {activePark ? (
           <ParkDetails
+            key={activePark.slug}
             park={activePark}
             onBack={handleBack}
             saved={favorites.includes(activePark.slug)}

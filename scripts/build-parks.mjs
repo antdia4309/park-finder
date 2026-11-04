@@ -275,6 +275,8 @@ async function main() {
   // One GeoJSON feature per line, sometimes prefixed with a record separator.
   const lines = (await readFile(file, 'utf8')).split('\n');
   for (const line of lines) {
+    // osmium starts each line with an invisible record-separator character (\x1e).
+    // eslint-disable-next-line no-control-regex
     const text = line.replace(/^\x1e/, '').trim();
     if (!text) continue;
     const f = JSON.parse(text);

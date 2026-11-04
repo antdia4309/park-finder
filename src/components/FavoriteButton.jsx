@@ -1,4 +1,3 @@
-import React from 'react';
 import './FavoriteButton.css';
 
 function FavoriteButton({ name, saved, onToggle, withLabel = false }) {

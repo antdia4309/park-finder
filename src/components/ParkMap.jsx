@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
 import ClusterImport from 'react-leaflet-cluster';
 import L from 'leaflet';
@@ -56,6 +56,8 @@ function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
   const selected = parks.find((p) => p.slug === selectedSlug) || null;
 
   // The selected park is drawn outside the clusters so it's never hidden inside one.
+  // This rule only matters for the optional React Compiler, which this app doesn't use.
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const markers = useMemo(
     () =>
       parks

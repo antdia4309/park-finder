@@ -1,4 +1,3 @@
-import React from 'react';
 import { ACTIVITIES } from '../utils/parks';
 import ActivityIcon from './ActivityIcon';
 import './ActivityFilters.css';

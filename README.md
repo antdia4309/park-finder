@@ -46,13 +46,14 @@ npm install
 npm start           # dev server at http://localhost:5173/park-finder/
 npm test            # run the tests once
 npm run test:watch  # rerun tests as you edit
+npm run lint        # check the code for mistakes
 npm run build       # production build in build/
 npm run preview     # serve the production build locally
 ```
 
 ## Deploying
 
-Every push to `main` runs the tests and publishes the site to GitHub Pages through GitHub Actions (`.github/workflows/deploy.yml`). There's no manual deploy step. In the repo's **Settings → Pages**, the source must be set to **GitHub Actions**.
+Every push to `main` checks the code, runs the tests, and publishes the site to GitHub Pages through GitHub Actions (`.github/workflows/deploy.yml`). There's no manual deploy step. In the repo's **Settings → Pages**, the source must be set to **GitHub Actions**.
 
 ## How matching works
 

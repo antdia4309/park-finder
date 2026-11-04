@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { strengths, formatMiles } from '../utils/parks';
 import { openStatus } from '../utils/hours';
 import ActivityIcon from './ActivityIcon';
@@ -23,12 +23,13 @@ const AMENITIES = [
 ];
 
 function ParkDetails({ park, onBack, saved, onToggleFavorite }) {
-  const headingRef = React.useRef(null);
-  const [shareStatus, setShareStatus] = React.useState('');
-  React.useEffect(() => {
+  const headingRef = useRef(null);
+  const [shareStatus, setShareStatus] = useState('');
+  // App gives this component a key per park, so switching parks starts fresh
+  // (no leftover "Link copied" or hidden photo). Just move focus to the heading.
+  useEffect(() => {
     headingRef.current?.focus();
-    setShareStatus('');
-  }, [park.slug]);
+  }, []);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -47,8 +48,7 @@ function ParkDetails({ park, onBack, saved, onToggleFavorite }) {
     }
   };
 
-  const [photoFailed, setPhotoFailed] = React.useState(false);
-  React.useEffect(() => setPhotoFailed(false), [park.slug]);
+  const [photoFailed, setPhotoFailed] = useState(false);
   const status = openStatus(park);
   const good = strengths(park);
   const present = AMENITIES.filter(([key]) => park.features[key] > 0);

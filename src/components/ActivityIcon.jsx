@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Simple line icons, one per activity.
 const PATHS = {

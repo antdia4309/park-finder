@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { strengths, formatMiles } from '../utils/parks';
 import { openStatus } from '../utils/hours';
 import FavoriteButton from './FavoriteButton';
@@ -32,9 +32,9 @@ function ParkRow({ park, saved, onSelect, onToggleFavorite }) {
 }
 
 function ParkList({ parks, selectedCount, onSelect, onClearFilters, favorites, onToggleFavorite, showSaved }) {
-  const [limit, setLimit] = React.useState(PAGE);
-
-  React.useEffect(() => setLimit(PAGE), [parks]);
+  // "Show more" applies to one list of results. When the list changes, start over.
+  const [paging, setPaging] = useState({ parks, limit: PAGE });
+  const limit = paging.parks === parks ? paging.limit : PAGE;
 
   if (!parks.length && showSaved) {
     return (
@@ -74,7 +74,7 @@ function ParkList({ parks, selectedCount, onSelect, onClearFilters, favorites, o
         ))}
       </ol>
       {limit < parks.length && (
-        <button type="button" className="show-more" onClick={() => setLimit(limit + PAGE)}>
+        <button type="button" className="show-more" onClick={() => setPaging({ parks, limit: limit + PAGE })}>
           Show more parks
         </button>
       )}

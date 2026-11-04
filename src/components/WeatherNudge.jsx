@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fetchWeather, weatherNudge } from '../utils/weather';
 import './WeatherNudge.css';
 
