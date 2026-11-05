@@ -1,0 +1,306 @@
+diff --git a/README.md b/README.md
+index 55bd03c..70592fb 100644
+--- a/README.md
++++ b/README.md
+@@ -63,4 +63,4 @@ Each activity has a score from 0 to 1. For example, a park with a playground sco
+ 
+ The code is released under the [MIT License](LICENSE).
+ 
+-Park data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License. Park photos come from [Wikimedia Commons](https://commons.wikimedia.org), and each one is credited with its author and license in the app. Map tiles © Esri.
++Park data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License. Park photos come from [Wikimedia Commons](https://commons.wikimedia.org), and each one is credited with its author and license in the app. Map tiles © Esri. Fonts are [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) and [Bricolage Grotesque](https://github.com/ateliertriay/bricolage), both under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org).
+diff --git a/index.html b/index.html
+index ed1c7a8..acf7afe 100644
+--- a/index.html
++++ b/index.html
+@@ -6,9 +6,8 @@
+     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+     <meta name="viewport" content="width=device-width, initial-scale=1" />
+     <meta name="theme-color" content="#234F35" />
+-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+-    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap" rel="stylesheet" />
++    <!-- Start connecting to the map tile server before the JavaScript asks for tiles. -->
++    <link rel="preconnect" href="https://server.arcgisonline.com" />
+     <meta
+       name="description"
+       content="ParkFinder helps you find Richmond-area parks for kids, dogs, walking, water, picnics, and sports"
+diff --git a/package-lock.json b/package-lock.json
+index 77cf374..367fb80 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -8,13 +8,15 @@
+       "name": "park-finder",
+       "version": "4.0.0",
+       "dependencies": {
++        "@fontsource/atkinson-hyperlegible": "^5.3.0",
++        "@fontsource/bricolage-grotesque": "^5.3.0",
+         "chart.js": "^4.4.3",
+         "leaflet": "^1.9.4",
++        "leaflet.markercluster": "^1.5.3",
+         "react": "^18.3.1",
+         "react-chartjs-2": "^5.2.0",
+         "react-dom": "^18.3.1",
+         "react-leaflet": "^4.2.1",
+-        "react-leaflet-cluster": "^2.1.0",
+         "suncalc": "^1.9.0"
+       },
+       "devDependencies": {
+@@ -655,6 +657,24 @@
+         }
+       }
+     },
++    "node_modules/@fontsource/atkinson-hyperlegible": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/atkinson-hyperlegible/-/atkinson-hyperlegible-5.3.0.tgz",
++      "integrity": "sha512-Sp8Ve8+rQmENY2Lv02VH7sLpntzTTvnncnJMTbRE7DX6TLxGraN4ykZfzaUWIoCFmaomwkvNiqmlPkrKBuDoSA==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
++    "node_modules/@fontsource/bricolage-grotesque": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/bricolage-grotesque/-/bricolage-grotesque-5.3.0.tgz",
++      "integrity": "sha512-MdOVb/5in11IfN/IQJOExMuu6AroCIQbirl0yX7NUvKk+h0HYIKfGaVAXRS/gCPil4aFxWhjZnOw28tUwv7tFw==",
++      "license": "OFL-1.1",
++      "funding": {
++        "url": "https://github.com/sponsors/ayuhito"
++      }
++    },
+     "node_modules/@humanfs/core": {
+       "version": "0.19.2",
+       "resolved": "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz",
+@@ -2893,21 +2913,6 @@
+         "react-dom": "^18.0.0"
+       }
+     },
+-    "node_modules/react-leaflet-cluster": {
+-      "version": "2.1.0",
+-      "resolved": "https://registry.npmjs.org/react-leaflet-cluster/-/react-leaflet-cluster-2.1.0.tgz",
+-      "integrity": "sha512-16X7XQpRThQFC4PH4OpXHimGg19ouWmjxjtpxOeBKpvERSvIRqTx7fvhTwkEPNMFTQ8zTfddz6fRTUmUEQul7g==",
+-      "license": "SEE LICENSE IN <LICENSE>",
+-      "dependencies": {
+-        "leaflet.markercluster": "^1.5.3"
+-      },
+-      "peerDependencies": {
+-        "leaflet": "^1.8.0",
+-        "react": "^18.0.0",
+-        "react-dom": "^18.0.0",
+-        "react-leaflet": "^4.0.0"
+-      }
+-    },
+     "node_modules/redent": {
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/redent/-/redent-3.0.0.tgz",
+@@ -3882,6 +3887,16 @@
+       "dev": true,
+       "requires": {}
+     },
++    "@fontsource/atkinson-hyperlegible": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/atkinson-hyperlegible/-/atkinson-hyperlegible-5.3.0.tgz",
++      "integrity": "sha512-Sp8Ve8+rQmENY2Lv02VH7sLpntzTTvnncnJMTbRE7DX6TLxGraN4ykZfzaUWIoCFmaomwkvNiqmlPkrKBuDoSA=="
++    },
++    "@fontsource/bricolage-grotesque": {
++      "version": "5.3.0",
++      "resolved": "https://registry.npmjs.org/@fontsource/bricolage-grotesque/-/bricolage-grotesque-5.3.0.tgz",
++      "integrity": "sha512-MdOVb/5in11IfN/IQJOExMuu6AroCIQbirl0yX7NUvKk+h0HYIKfGaVAXRS/gCPil4aFxWhjZnOw28tUwv7tFw=="
++    },
+     "@humanfs/core": {
+       "version": "0.19.2",
+       "resolved": "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz",
+@@ -5191,14 +5206,6 @@
+         "@react-leaflet/core": "^2.1.0"
+       }
+     },
+-    "react-leaflet-cluster": {
+-      "version": "2.1.0",
+-      "resolved": "https://registry.npmjs.org/react-leaflet-cluster/-/react-leaflet-cluster-2.1.0.tgz",
+-      "integrity": "sha512-16X7XQpRThQFC4PH4OpXHimGg19ouWmjxjtpxOeBKpvERSvIRqTx7fvhTwkEPNMFTQ8zTfddz6fRTUmUEQul7g==",
+-      "requires": {
+-        "leaflet.markercluster": "^1.5.3"
+-      }
+-    },
+     "redent": {
+       "version": "3.0.0",
+       "resolved": "https://registry.npmjs.org/redent/-/redent-3.0.0.tgz",
+diff --git a/package.json b/package.json
+index f2d183e..2785140 100644
+--- a/package.json
++++ b/package.json
+@@ -3,13 +3,15 @@
+   "version": "4.0.0",
+   "private": true,
+   "dependencies": {
++    "@fontsource/atkinson-hyperlegible": "^5.3.0",
++    "@fontsource/bricolage-grotesque": "^5.3.0",
+     "chart.js": "^4.4.3",
+     "leaflet": "^1.9.4",
++    "leaflet.markercluster": "^1.5.3",
+     "react": "^18.3.1",
+     "react-chartjs-2": "^5.2.0",
+     "react-dom": "^18.3.1",
+     "react-leaflet": "^4.2.1",
+-    "react-leaflet-cluster": "^2.1.0",
+     "suncalc": "^1.9.0"
+   },
+   "scripts": {
+diff --git a/src/components/ParkMap.jsx b/src/components/ParkMap.jsx
+index c75633e..86205f1 100644
+--- a/src/components/ParkMap.jsx
++++ b/src/components/ParkMap.jsx
+@@ -1,24 +1,32 @@
+-import { useEffect, useMemo } from 'react';
++import { useEffect, useRef } from 'react';
+ import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
+-import ClusterImport from 'react-leaflet-cluster';
+ import L from 'leaflet';
++// Adds L.markerClusterGroup. It attaches to Leaflet's global L, so it must come after Leaflet.
++import 'leaflet.markercluster';
++import 'leaflet.markercluster/dist/MarkerCluster.css';
+ import 'leaflet/dist/leaflet.css';
+ import './ParkMap.css';
+ 
+-// react-leaflet-cluster only ships the older CommonJS format. Vite 8 hands back the whole
+-// module, so the component sits under .default; other tools unwrap it for us.
+-const MarkerClusterGroup = ClusterImport.default || ClusterImport;
+-
+ const RICHMOND = [37.5407, -77.436];
+ 
++// Icons are reused: every park with the same color shares one icon object,
++// instead of building 329 separate ones each time the map updates.
++const iconCache = new Map();
+ function markerIcon(color, active) {
+-  const size = active ? 26 : 16;
+-  return L.divIcon({
+-    className: '',
+-    html: `<span class="park-pin${active ? ' is-active' : ''}" style="--pin:${color}"></span>`,
+-    iconSize: [size, size],
+-    iconAnchor: [size / 2, size / 2],
+-  });
++  const key = `${color}-${active}`;
++  if (!iconCache.has(key)) {
++    const size = active ? 26 : 16;
++    iconCache.set(
++      key,
++      L.divIcon({
++        className: '',
++        html: `<span class="park-pin${active ? ' is-active' : ''}" style="--pin:${color}"></span>`,
++        iconSize: [size, size],
++        iconAnchor: [size / 2, size / 2],
++      })
++    );
++  }
++  return iconCache.get(key);
+ }
+ 
+ // Groups nearby parks into a numbered circle when zoomed out.
+@@ -52,29 +60,55 @@ function MapFocus({ park, userLocation }) {
+   return null;
+ }
+ 
+-function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
+-  const selected = parks.find((p) => p.slug === selectedSlug) || null;
++// Draws every park except the selected one as a clustered marker. The markers are
++// added in one bulk call, which lets the cluster plugin spread the work out instead
++// of recalculating after each of the 300+ markers.
++function ParkMarkers({ parks, selectedSlug, onSelect }) {
++  const map = useMap();
++  const groupRef = useRef(null);
++
++  // Clicks always call the latest onSelect without rebuilding every marker.
++  const onSelectRef = useRef(onSelect);
++  useEffect(() => {
++    onSelectRef.current = onSelect;
++  });
++
++  // Create the cluster layer once.
++  useEffect(() => {
++    const group = L.markerClusterGroup({
++      chunkedLoading: true,
++      maxClusterRadius: 60,
++      showCoverageOnHover: false,
++      iconCreateFunction: clusterIcon,
++    });
++    map.addLayer(group);
++    groupRef.current = group;
++    return () => map.removeLayer(group);
++  }, [map]);
+ 
+-  // The selected park is drawn outside the clusters so it's never hidden inside one.
+-  // This rule only matters for the optional React Compiler, which this app doesn't use.
+-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+-  const markers = useMemo(
+-    () =>
++  // Replace the markers whenever the matching parks change.
++  useEffect(() => {
++    const group = groupRef.current;
++    group.clearLayers();
++    group.addLayers(
+       parks
+         .filter((p) => p.slug !== selectedSlug)
+-        .map((p) => (
+-          <Marker
+-            key={p.slug}
+-            position={[p.lat, p.lon]}
+-            icon={markerIcon(p.color, false)}
+-            keyboard={false}
+-            eventHandlers={{ click: () => onSelect(p.slug) }}
+-          >
+-            <Tooltip direction="top" offset={[0, -8]}>{p.name}</Tooltip>
+-          </Marker>
+-        )),
+-    [parks, selectedSlug, onSelect]
+-  );
++        .map((p) =>
++          L.marker([p.lat, p.lon], {
++            icon: markerIcon(p.color, false),
++            keyboard: false,
++            // The browser's built-in hover label; much lighter than a tooltip per park.
++            title: p.name,
++          }).on('click', () => onSelectRef.current(p.slug))
++        )
++    );
++  }, [parks, selectedSlug]);
++
++  return null;
++}
++
++function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
++  const selected = parks.find((p) => p.slug === selectedSlug) || null;
+ 
+   return (
+     <div className="park-map" role="region" aria-label="Map of matching parks">
+@@ -92,14 +126,8 @@ function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
+             pathOptions={{ color: selected.color, weight: 3, fillColor: selected.color, fillOpacity: 0.12 }}
+           />
+         )}
+-        <MarkerClusterGroup
+-          chunkedLoading
+-          maxClusterRadius={45}
+-          showCoverageOnHover={false}
+-          iconCreateFunction={clusterIcon}
+-        >
+-          {markers}
+-        </MarkerClusterGroup>
++        {/* The selected park is drawn separately, outside the clusters, so it's never hidden inside one. */}
++        <ParkMarkers parks={parks} selectedSlug={selectedSlug} onSelect={onSelect} />
+         {selected && (
+           <Marker
+             key={`selected-${selected.slug}`}
+diff --git a/src/index.jsx b/src/index.jsx
+index 71158f7..73d07e1 100644
+--- a/src/index.jsx
++++ b/src/index.jsx
+@@ -1,5 +1,11 @@
+ import { StrictMode } from 'react';
+ import { createRoot } from 'react-dom/client';
++// Fonts are bundled with the app instead of loaded from Google, so the first paint
++// doesn't wait on another server. Only the Latin subsets and weights the app uses.
++import '@fontsource/atkinson-hyperlegible/latin-400.css';
++import '@fontsource/atkinson-hyperlegible/latin-700.css';
++import '@fontsource/bricolage-grotesque/latin-700.css';
++import '@fontsource/bricolage-grotesque/latin-800.css';
+ import './index.css';
+ import App from './App';
+ 

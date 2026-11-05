@@ -1,24 +1,32 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, CircleMarker, Polygon, useMap } from 'react-leaflet';
-import ClusterImport from 'react-leaflet-cluster';
 import L from 'leaflet';
+// Adds L.markerClusterGroup. It attaches to Leaflet's global L, so it must come after Leaflet.
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet/dist/leaflet.css';
 import './ParkMap.css';
 
-// react-leaflet-cluster only ships the older CommonJS format. Vite 8 hands back the whole
-// module, so the component sits under .default; other tools unwrap it for us.
-const MarkerClusterGroup = ClusterImport.default || ClusterImport;
-
 const RICHMOND = [37.5407, -77.436];
 
+// Icons are reused: every park with the same color shares one icon object,
+// instead of building 329 separate ones each time the map updates.
+const iconCache = new Map();
 function markerIcon(color, active) {
-  const size = active ? 26 : 16;
-  return L.divIcon({
-    className: '',
-    html: `<span class="park-pin${active ? ' is-active' : ''}" style="--pin:${color}"></span>`,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
+  const key = `${color}-${active}`;
+  if (!iconCache.has(key)) {
+    const size = active ? 26 : 16;
+    iconCache.set(
+      key,
+      L.divIcon({
+        className: '',
+        html: `<span class="park-pin${active ? ' is-active' : ''}" style="--pin:${color}"></span>`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      })
+    );
+  }
+  return iconCache.get(key);
 }
 
 // Groups nearby parks into a numbered circle when zoomed out.
@@ -52,29 +60,55 @@ function MapFocus({ park, userLocation }) {
   return null;
 }
 
-function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
-  const selected = parks.find((p) => p.slug === selectedSlug) || null;
+// Draws every park except the selected one as a clustered marker. The markers are
+// added in one bulk call, which lets the cluster plugin spread the work out instead
+// of recalculating after each of the 300+ markers.
+function ParkMarkers({ parks, selectedSlug, onSelect }) {
+  const map = useMap();
+  const groupRef = useRef(null);
 
-  // The selected park is drawn outside the clusters so it's never hidden inside one.
-  // This rule only matters for the optional React Compiler, which this app doesn't use.
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
-  const markers = useMemo(
-    () =>
+  // Clicks always call the latest onSelect without rebuilding every marker.
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
+  });
+
+  // Create the cluster layer once.
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      chunkedLoading: true,
+      maxClusterRadius: 60,
+      showCoverageOnHover: false,
+      iconCreateFunction: clusterIcon,
+    });
+    map.addLayer(group);
+    groupRef.current = group;
+    return () => map.removeLayer(group);
+  }, [map]);
+
+  // Replace the markers whenever the matching parks change.
+  useEffect(() => {
+    const group = groupRef.current;
+    group.clearLayers();
+    group.addLayers(
       parks
         .filter((p) => p.slug !== selectedSlug)
-        .map((p) => (
-          <Marker
-            key={p.slug}
-            position={[p.lat, p.lon]}
-            icon={markerIcon(p.color, false)}
-            keyboard={false}
-            eventHandlers={{ click: () => onSelect(p.slug) }}
-          >
-            <Tooltip direction="top" offset={[0, -8]}>{p.name}</Tooltip>
-          </Marker>
-        )),
-    [parks, selectedSlug, onSelect]
-  );
+        .map((p) =>
+          L.marker([p.lat, p.lon], {
+            icon: markerIcon(p.color, false),
+            keyboard: false,
+            // The browser's built-in hover label; much lighter than a tooltip per park.
+            title: p.name,
+          }).on('click', () => onSelectRef.current(p.slug))
+        )
+    );
+  }, [parks, selectedSlug]);
+
+  return null;
+}
+
+function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
+  const selected = parks.find((p) => p.slug === selectedSlug) || null;
 
   return (
     <div className="park-map" role="region" aria-label="Map of matching parks">
@@ -92,14 +126,8 @@ function ParkMap({ parks, selectedSlug, onSelect, userLocation }) {
             pathOptions={{ color: selected.color, weight: 3, fillColor: selected.color, fillOpacity: 0.12 }}
           />
         )}
-        <MarkerClusterGroup
-          chunkedLoading
-          maxClusterRadius={45}
-          showCoverageOnHover={false}
-          iconCreateFunction={clusterIcon}
-        >
-          {markers}
-        </MarkerClusterGroup>
+        {/* The selected park is drawn separately, outside the clusters, so it's never hidden inside one. */}
+        <ParkMarkers parks={parks} selectedSlug={selectedSlug} onSelect={onSelect} />
         {selected && (
           <Marker
             key={`selected-${selected.slug}`}

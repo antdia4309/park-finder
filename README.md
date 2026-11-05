@@ -63,4 +63,4 @@ Each activity has a score from 0 to 1. For example, a park with a playground sco
 
 The code is released under the [MIT License](LICENSE).
 
-Park data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License. Park photos come from [Wikimedia Commons](https://commons.wikimedia.org), and each one is credited with its author and license in the app. Map tiles © Esri.
+Park data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, available under the Open Database License. Park photos come from [Wikimedia Commons](https://commons.wikimedia.org), and each one is credited with its author and license in the app. Map tiles © Esri. Fonts are [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/) and [Bricolage Grotesque](https://github.com/ateliertriay/bricolage), both under the SIL Open Font License, bundled through [Fontsource](https://fontsource.org).
